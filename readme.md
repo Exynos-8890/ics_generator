@@ -1,0 +1,1 @@
+An easy way to create a .ics calendar file with natural language.
