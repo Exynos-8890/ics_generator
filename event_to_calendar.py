@@ -5,6 +5,7 @@ import datetime
 import subprocess
 import json
 import openai
+import pyperclip
 # 加载.env文件
 load_dotenv()
 
@@ -12,15 +13,11 @@ load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
 
 def get_event_info():
-    """从用户获取事件信息，支持多行输入"""
-    print("请输入事件信息（输入完成后请按两次回车）：")
-    lines = []
-    while True:
-        line = input()
-        if line.strip() == "":
-            break
-        lines.append(line)
-    return "\n".join(lines)
+    """从剪贴板获取事件信息"""
+    event_info = pyperclip.paste()
+    print("从剪贴板读取的事件信息：")
+    print(event_info)
+    return event_info
 
 def process_with_openai(event_info):
     """使用OpenAI API处理事件信息并返回JSON格式的结果"""
@@ -34,7 +31,7 @@ def process_with_openai(event_info):
             },
             {
             "role": "user",
-            "content": f"从以下多行信息中提取事件标题、日期、开始时间、结束时间、地点和详细描述,并以JSON格式返回。格式应为: {{'title': '事件标题', 'date': 'YYYY-MM-DD', 'start_time': 'HH:MM', 'end_time': 'HH:MM', 'location': '地点', 'description': '详细描述'}}。如果某项信息缺失,对应的值应为null。不需要返回```json和```,以下是事件信息: \n{event_info}\n"
+            "content": f"从以下多行信息中提取事件标题、日期、开始时间、结束时间、地点和详细描述,并以JSON格式返回。格式应为: {{\"title\": \"事件标题\", \"date\": \"YYYY-MM-DD\", \"start_time\": \"HH:MM\", \"end_time\": \"HH:MM\", \"location\": \"地点\", \"description\": \"详细描述\"}}。如果某项信息缺失,对应的值应为null。不需要返回```json和```,以下是事件信息: \n{event_info}\n"
             }
         ]
     )
@@ -46,7 +43,8 @@ def create_ics_file(event_json: str):
     event = Event()
     # event_json 删除第一行和最后一行,保留str格式
     event_data = json.loads(event_json)
-    print(event_data)
+    # print(event_data)
+    print("json转化成功")
     event.add('summary', event_data['title'])
     
     if event_data['date'] and event_data['start_time']:
