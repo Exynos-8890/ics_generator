@@ -22,6 +22,7 @@ def get_event_info():
 def process_with_openai(event_info):
     """使用OpenAI API处理事件信息并返回JSON格式的结果"""
     client = openai.OpenAI()
+    today = datetime.date.today().strftime("%Y-%m-%d")
     completion = client.chat.completions.create(
         model="gpt-4o-mini",
         messages=[
@@ -31,7 +32,7 @@ def process_with_openai(event_info):
             },
             {
             "role": "user",
-            "content": f"从以下多行信息中提取事件标题、日期、开始时间、结束时间、地点和详细描述,并以JSON格式返回。格式应为: {{\"title\": \"事件标题\", \"date\": \"YYYY-MM-DD\", \"start_time\": \"HH:MM\", \"end_time\": \"HH:MM\", \"location\": \"地点\", \"description\": \"详细描述\"}}。如果某项信息缺失,对应的值应为null。不需要返回```json和```,以下是事件信息: \n{event_info}\n"
+            "content": f"今天是{today}。参考今天的日期，从以下多行信息中提取事件标题、日期、开始时间、结束时间、地点和详细描述,并以JSON格式返回。格式应为: {{\"title\": \"事件标题\", \"date\": \"YYYY-MM-DD\", \"start_time\": \"HH:MM\", \"end_time\": \"HH:MM\", \"location\": \"地点\", \"description\": \"详细描述\"}}。如果某项信息缺失,对应的值应为null。如果没有明确指定日期,请假设事件发生在今天或最近的未来日期。不需要返回```json和```,以下是事件信息: \n{event_info}\n"
             }
         ]
     )
