@@ -6,11 +6,13 @@ import subprocess
 import json
 import openai
 import pyperclip
+import sf
 # 加载.env文件
 load_dotenv()
 
 # 从环境变量中获取API密钥
 openai.api_key = os.getenv("OPENAI_API_KEY")
+model_name="gpt-4o-mini",
 
 def get_event_info():
     """从剪贴板获取事件信息"""
@@ -24,21 +26,20 @@ def process_with_openai(event_info):
     client = openai.OpenAI()
     today = datetime.date.today().strftime("%Y-%m-%d")
     # 星期几
-    weekday = datetime.date.today().weekday()
-    completion = client.chat.completions.create(
-        model="gpt-4o-mini",
-        messages=[
-            {
-            "role": "system",
-            "content": "你是一个日历助手,可以从用户输入中提取事件信息并格式化为JSON。"
-            },
-            {
-            "role": "user",
-            "content": f"今天是{today}，星期{weekday}。参考今天的日期，从以下多行信息中提取事件标题、日期、开始时间、结束时间、地点和详细描述,并以JSON格式返回。格式应为: {{\"title\": \"事件标题\", \"date\": \"YYYY-MM-DD\", \"start_time\": \"HH:MM\", \"end_time\": \"HH:MM\", \"location\": \"地点\", \"description\": \"详细描述\"}}。如果某项信息缺失,对应的值应为null。如果没有明确指定日期,请假设事件发生在今天或最近的未来日期。不需要返回```json和```,以下是事件信息: \n{event_info}\n"
-            }
-        ]
-    )
-    return completion.choices[0].message.content
+    weekday = datetime.date.today().weekday()+1
+    time_zone = datetime.datetime.now().astimezone().tzinfo
+    print("try to run prompt")
+    messages=[
+        {
+        "role": "system",
+        "content": "你是一个日历助手,可以从用户输入中提取事件信息并格式化为JSON。"
+        },
+        {
+        "role": "user",
+        "content": f"今天是{today}，时区为{str(time_zone)}，星期{weekday}。参考今天的日期，从以下多行信息中提取事件标题、日期、开始时间、结束时间、地点和详细描述,并以JSON格式返回。格式应为: {{\"title\": \"事件标题\", \"date\": \"YYYY-MM-DD\", \"start_time\": \"HH:MM\", \"end_time\": \"HH:MM\", \"location\": \"地点\", \"description\": \"详细描述\"}}。如果某项信息缺失,对应的值应为null。如果没有明确指定日期,请假设事件发生在今天或最近的未来日期。不需要返回```json和```,以下是事件信息: \n{event_info}\n"
+        }
+    ]
+    return sf.llm_response(messages)
 
 def create_ics_file(event_json: str):
     """根据JSON创建ICS文件"""
@@ -81,7 +82,6 @@ def main():
     processed_info = process_with_openai(event_info)
     print("处理结果：")
     print(processed_info)
-    # assert(processed_info )
     try:
         create_ics_file(processed_info)
         print("ICS文件已创建")
