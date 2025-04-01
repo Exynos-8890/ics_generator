@@ -23,7 +23,7 @@ def get_event_info():
 
 def process_with_openai(event_info):
     """使用OpenAI API处理事件信息并返回JSON格式的结果"""
-    client = openai.OpenAI()
+    # client = openai.OpenAI()
     today = datetime.date.today().strftime("%Y-%m-%d")
     # 星期几
     weekday = datetime.date.today().weekday()+1
@@ -87,7 +87,7 @@ def main():
         print("ICS文件已创建")
         open_ics_file()
     except json.JSONDecodeError:
-        print("无法解析JSON数据,请检查OpenAI的输出格式")
+        print("无法解析JSON数据,请检查LLM的输出格式")
     except Exception as e:
         print(f"创建ICS文件时发生错误: {str(e)}")
 

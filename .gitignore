@@ -2,3 +2,4 @@
 /ics
 .DS_Store
 event.ics
+/__pycache__
