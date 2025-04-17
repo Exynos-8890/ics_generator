@@ -4,14 +4,13 @@ from icalendar import Calendar, Event
 import datetime
 import subprocess
 import json
-import openai
 import pyperclip
-import sf
+import gemini
 # 加载.env文件
 load_dotenv()
 
 # 从环境变量中获取API密钥
-openai.api_key = os.getenv("OPENAI_API_KEY")
+# openai.api_key = os.getenv("OPENAI_API_KEY")
 model_name="gpt-4o-mini",
 
 def get_event_info():
@@ -31,15 +30,16 @@ def process_with_openai(event_info):
     print("try to run prompt")
     messages=[
         {
-        "role": "system",
-        "content": "你是一个日历助手,可以从用户输入中提取事件信息并格式化为JSON。"
-        },
-        {
         "role": "user",
-        "content": f"今天是{today}，时区为{str(time_zone)}，星期{weekday}。参考今天的日期，从以下多行信息中提取事件标题、日期、开始时间、结束时间、地点和详细描述,并以JSON格式返回。格式应为: {{\"title\": \"事件标题\", \"date\": \"YYYY-MM-DD\", \"start_time\": \"HH:MM\", \"end_time\": \"HH:MM\", \"location\": \"地点\", \"description\": \"详细描述\"}}。如果某项信息缺失,对应的值应为null。如果没有明确指定日期,请假设事件发生在今天或最近的未来日期。不需要返回```json和```,以下是事件信息: \n{event_info}\n"
+        "content": f"你是一个日历助手,可以从用户输入中提取事件信息并格式化为JSON。今天是{today}，时区为{str(time_zone)}，星期{weekday}。参考今天的日期，从以下多行信息中提取事件标题、日期、开始时间、结束时间、地点和详细描述,并以JSON格式返回。格式应为: {{\"title\": \"事件标题\", \"date\": \"YYYY-MM-DD\", \"start_time\": \"HH:MM\", \"end_time\": \"HH:MM\", \"location\": \"地点\", \"description\": \"详细描述\"}}。如果某项信息缺失,对应的值应为null。如果没有明确指定日期,请假设事件发生在今天或最近的未来日期。不需要返回```json和```,以下是事件信息: \n{event_info}\n"
         }
     ]
-    return sf.llm_response(messages)
+    response = gemini.llm_response(messages)
+    if(response.startswith("```json")):
+        response = response[10:]
+    if(response.endswith("```")):
+        response = response[:-3]
+    return response
 
 def create_ics_file(event_json: str):
     """根据JSON创建ICS文件"""
