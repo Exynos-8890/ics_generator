@@ -2,7 +2,9 @@ import os
 from google import genai
 from google.genai import types
 from dotenv import load_dotenv
-
+# model = "gemini-2.5-flash-preview-04-17"
+model = "gemini-2.0-flash"
+# model = "gemini-2.0-flash-lite-001"
 def messages_to_content(messages):
     """
     将消息列表转换为Gemini API所需的Content格式
@@ -32,7 +34,8 @@ def llm_response(messages):
     api_key = os.getenv("GEMINI_API_KEY")
     client = genai.Client(api_key=api_key, )
 
-    model = "gemini-2.0-flash"
+    # model = "gemini-2.5-flash-preview-04-17"
+    model = "gemini-2.0-flash-lite-001"
     contents = messages_to_content(messages)
     generate_content_config = types.GenerateContentConfig(
         temperature=0.65,
@@ -46,14 +49,9 @@ def llm_response(messages):
         contents=contents,
         config=generate_content_config,
     ):
-        print(chunk.text, end="")
+        # print(chunk.text, end="")
         if chunk.text:
             response += chunk.text
-    # 处理响应，去掉开头和结尾的代码块标记
-    if(response.startswith("```json")):
-        response = response[10:]
-    if(response.endswith("```")):
-        response = response[:-3]
         
     return response
 

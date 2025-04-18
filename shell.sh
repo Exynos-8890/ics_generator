@@ -1,0 +1,1 @@
+/Users/macbook/Documents/ics_generator/.venv/bin/python -u "/Users/macbook/Documents/ics_generator/event_to_calendar.py"
